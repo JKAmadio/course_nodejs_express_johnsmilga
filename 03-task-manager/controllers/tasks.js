@@ -1,7 +1,15 @@
 const Task = require("../models/Task");
 
-const getAllTasks = (req, res) => {
-  return res.send("Get all tasks");
+// to garantee that we have an answer from the database, we use async/await method
+// the mongoose model has a 'find' method that filters the documents based on some properties
+// mais infos: https://mongoosejs.com/docs/api.html#model_Model-find
+const getAllTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find({});
+    return res.status(200).json({ tasks });
+  } catch (error) {
+    return res.status(500).json({ success: false, msg: error });
+  }
 };
 
 // to garantee that the item is created at the database, we use async/await method
@@ -19,21 +27,72 @@ const createTask = async (req, res) => {
   }
 };
 
-const getTask = (req, res) => {
-  const { id } = req.params;
-  return res.send(`Get task ${id}`);
+// to garantee that we have an answer from the database, we use async/await method
+// the mongoose model has a 'findId' method that filter the documents based on the Id property
+// mais infos: https://mongoosejs.com/docs/api.html#model_Model-findById
+const getTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const singleTask = await Task.findById(id);
+
+    // another way: with "findOne" method
+    // mais infos: https://mongoosejs.com/docs/api.html#model_Model-findOne
+    // const { id: taskId } = req.params;
+    // const singleTask = await Task.findOne({ _id: taskId });
+
+    // this conditional is very important because we have two types of errors
+    // error 404 will be launched when no tasks were found
+    if (!singleTask) {
+      return res
+        .status(404)
+        .json({ success: false, msg: `No task with id: ${id}` });
+    } else {
+      return res.status(200).json({ singleTask });
+    }
+  } catch (error) {
+    // error 500 will be launched when the info passed is not an ObjectId format
+    return res.status(500).json({ success: false, msg: error });
+  }
 };
 
-const updateTask = (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
-  if (!name) return res.json({ success: false, msg: "no new value passed" });
-  else return res.json({ success: true, task: name });
+// to garantee that we have an answer from the database, we use async/await method
+// the mongoose model has a 'findOneAndDelete' method that filters the documents based on some properties and updates it
+// we MUST pass the object with the new infos (req.body in our case)
+// we CAN pass some extra infos:
+// new: will modify the "task" variable to the new value
+// runValidators: will run the validators set on the schema (see Task.js)
+// mais infos: https://mongoosejs.com/docs/api.html#model_Model-findOneAndUpdate
+const updateTask = async (req, res) => {
+  try {
+    const { id: taskId } = req.params;
+    const task = await Task.findOneAndUpdate({ _id: taskId }, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!task) {
+      return res
+        .status(404)
+        .json({ success: false, msg: `no task with id ${taskId}` });
+    }
+    return res.status(200).json({ task });
+  } catch (error) {
+    return res.status(500).json({ success: false, msg: error });
+  }
 };
 
-const deleteTask = (req, res) => {
-  const { id } = req.params;
-  return res.send(`Delete task ${id}`);
+const deleteTask = async (req, res) => {
+  try {
+    const { id: taskId } = req.params;
+    const task = await Task.findOneAndDelete({ _id: taskId });
+    if (!task) {
+      return res
+        .status(404)
+        .json({ success: false, msg: `No task with id ${taskId}` });
+    }
+    return res.status(200).json(task);
+  } catch (error) {
+    return res.status(500).json({ success: false, msg: error });
+  }
 };
 
 module.exports = {
