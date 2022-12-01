@@ -8,8 +8,15 @@ const getAllTasks = (req, res) => {
 // the mongoose model has a 'create' method that creates a documnent (the item of the table)
 // mais infos: https://mongoosejs.com/docs/models.html#constructing-documents
 const createTask = async (req, res) => {
-  const newTask = await Task.create(req.body);
-  return res.status(201).json(newTask);
+  // as we are executing an await/async method we MUST
+  // use the try/catch block so we can handdle any error
+  try {
+    const newTask = await Task.create(req.body);
+    return res.status(201).json(newTask);
+  } catch (error) {
+    // "error" is the phrase that we put at the model schema (see file Taks.js)
+    return res.status(500).json({ success: false, msg: error });
+  }
 };
 
 const getTask = (req, res) => {
