@@ -7,14 +7,19 @@ require("dotenv").config();
 // import the callback function from the connect.js
 const connectDB = require("./db/connect");
 
+const notFound = require("./middleware/notFound");
+const errorHandler = require("./middleware/errorHandler");
+
 const tasks = require("./routes/tasks");
 
 app.use(express.json());
 app.use("/api/v1/tasks", tasks);
 
-app.get("/hello", (req, res) => {
-  res.send("Task Manager App");
-});
+// middleware to set the 404 page
+app.use(notFound);
+
+// middleware to trow errors
+app.use(errorHandler);
 
 const port = 3000;
 
