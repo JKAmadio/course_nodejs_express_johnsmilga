@@ -6,6 +6,7 @@ const products = require("./routes/products");
 require("dotenv").config();
 
 const app = express();
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send('<h1>Store API</h1><a href="api/v1/products/">products</a>');
