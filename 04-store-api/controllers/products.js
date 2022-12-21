@@ -6,7 +6,8 @@ const getAllProducts = asyncWrapper(async (req, res) => {
   // to garantee that we only search for existing properties
   // we destructure the queries to get only the product props
   // we include the sort query to make the sorting feature
-  const { featured, company, name, sort } = req.query;
+  // we include the fileds query to make the selecting feature
+  const { featured, company, name, sort, fields, limit } = req.query;
   let queryObject = {};
 
   // the query comes as string, so we need to manage the boolean value
@@ -23,12 +24,20 @@ const getAllProducts = asyncWrapper(async (req, res) => {
   // we remove the "await" keyword and pass it at the end of the result
   let result = Products.find(queryObject);
 
-  // we must garantee that the sort will be executed only when the user pass the sort query
+  // we must garantee that the sort will be executed only when the user passes the sort query
   // and the sort property must be chainned to the find function
   // https://mongoosejs.com/docs/queries.html#executing
   if (sort) {
-    const sortList = sort.split(",").join(" ");
+    const sortList = sort.replace(",", " ");
     result = result.sort(sortList);
+  }
+
+  // we must garantee that the select will be executed only when the user passes the fields query
+  // and the select property must be chainned to the find function
+  // https://mongoosejs.com/docs/queries.html#executing
+  if (fields) {
+    const fieldsList = fields.replace(",", " ");
+    result = result.select(fieldsList);
   }
 
   // we pass the "await" keyword to this point to garantee the whole DB return (find and sort)
