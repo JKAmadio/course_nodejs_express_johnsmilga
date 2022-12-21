@@ -5,7 +5,8 @@ const { createCustomError } = require("../errors/custom-error");
 const getAllProducts = asyncWrapper(async (req, res) => {
   // to garantee that we only search for existing properties
   // we destructure the queries to get only the product props
-  const { featured, company, name } = req.query;
+  // we include the sort query to make the sorting feature
+  const { featured, company, name, sort } = req.query;
   let queryObject = {};
 
   // the query comes as string, so we need to manage the boolean value
@@ -19,7 +20,19 @@ const getAllProducts = asyncWrapper(async (req, res) => {
   if (name) queryObject.name = { $regex: name, $options: "i" };
 
   // we pass the queryObject as the find parameter
-  const products = await Products.find(queryObject);
+  // we remove the "await" keyword and pass it at the end of the result
+  let result = Products.find(queryObject);
+
+  // we must garantee that the sort will be executed only when the user pass the sort query
+  // and the sort property must be chainned to the find function
+  // https://mongoosejs.com/docs/queries.html#executing
+  if (sort) {
+    const sortList = sort.split(",").join(" ");
+    result = result.sort(sortList);
+  }
+
+  // we pass the "await" keyword to this point to garantee the whole DB return (find and sort)
+  const products = await result;
   return res.status(200).json(products);
 });
 
