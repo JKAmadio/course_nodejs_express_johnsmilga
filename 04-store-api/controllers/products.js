@@ -6,8 +6,8 @@ const getAllProducts = asyncWrapper(async (req, res) => {
   // to garantee that we only search for existing properties
   // we destructure the queries to get only the product props
   // we include the sort query to make the sorting feature
-  // we include the fileds query to make the selecting feature
-  const { featured, company, name, sort, fields, limit } = req.query;
+  // we include the fields query to make the selecting feature
+  const { featured, company, name, sort, fields } = req.query;
   let queryObject = {};
 
   // the query comes as string, so we need to manage the boolean value
@@ -39,6 +39,19 @@ const getAllProducts = asyncWrapper(async (req, res) => {
     const fieldsList = fields.replace(",", " ");
     result = result.select(fieldsList);
   }
+
+  // if no limit query is passed we stablish its value
+  // and the limit property must be chainned to the find function
+  // https://mongoosejs.com/docs/queries.html#executing
+  const limit = Number(req.query.limit) || 10;
+
+  // if no page query is passed we stablish its value
+  // and the page property must be chainned to the find function
+  // https://mongoosejs.com/docs/api.html#query_Query-skip
+  const page = Number(req.query.page) || 1;
+  const skip = (page - 1) * limit;
+
+  result = result.skip(skip).limit(limit);
 
   // we pass the "await" keyword to this point to garantee the whole DB return (find and sort)
   const products = await result;
