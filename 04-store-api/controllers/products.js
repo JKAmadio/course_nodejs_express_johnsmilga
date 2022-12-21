@@ -3,7 +3,23 @@ const asyncWrapper = require("../middleware/async");
 const { createCustomError } = require("../errors/custom-error");
 
 const getAllProducts = asyncWrapper(async (req, res) => {
-  const products = await Products.find({});
+  // to garantee that we only search for existing properties
+  // we destructure the queries to get only the product props
+  const { featured, company, name } = req.query;
+  let queryObject = {};
+
+  // the query comes as string, so we need to manage the boolean value
+  if (featured) queryObject.featured = featured === "true" ? true : false;
+
+  if (company) queryObject.company = company;
+
+  // we can use regex operators to make more complex searchs
+  // in this case we ar looking for products that contain the letters we pass
+  // https://www.mongodb.com/docs/manual/reference/operator/query/regex/#-regex
+  if (name) queryObject.name = { $regex: name, $options: "i" };
+
+  // we pass the queryObject as the find parameter
+  const products = await Products.find(queryObject);
   return res.status(200).json(products);
 });
 
