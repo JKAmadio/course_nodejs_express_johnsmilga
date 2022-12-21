@@ -7,7 +7,8 @@ const getAllProducts = asyncWrapper(async (req, res) => {
   // we destructure the queries to get only the product props
   // we include the sort query to make the sorting feature
   // we include the fields query to make the selecting feature
-  const { featured, company, name, sort, fields } = req.query;
+  // we include the numericFilters query to make the filter feature
+  const { featured, company, name, sort, fields, numericFilters } = req.query;
   let queryObject = {};
 
   // the query comes as string, so we need to manage the boolean value
@@ -19,6 +20,35 @@ const getAllProducts = asyncWrapper(async (req, res) => {
   // in this case we ar looking for products that contain the letters we pass
   // https://www.mongodb.com/docs/manual/reference/operator/query/regex/#-regex
   if (name) queryObject.name = { $regex: name, $options: "i" };
+
+  if (numericFilters) {
+    //https://www.mongodb.com/docs/manual/reference/operator/query-comparison/
+    const operatorMap = {
+      ">": "$gt",
+      ">=": "$gte",
+      "<": "$lt",
+      "<=": "$lte",
+      "=": "$eq",
+    };
+
+    // we use regex and replace to transform the user query string to another
+    // input: price>40,rating>=4 -> output: price-$gt-40,rating-$gte-4
+    const regEx = /\b(>|>=|<|<=|=)\b/g;
+    let filters = numericFilters.replace(
+      regEx,
+      (match) => `-${operatorMap[match]}-` // we include an hifen at the start and at the end to be able to split later
+    );
+
+    // we use split and array destructuring to mount the find sentence
+    // input: price-$gt-40,rating-$gte-4 -> output queryObject[price] = { $gt : 40 } and queryObject[rating] = { $gte : 4 }
+    const allowedOptions = ["price", "rating"];
+    filters = filters.split(",").forEach((item) => {
+      const [field, operator, value] = item.split("-");
+      if (allowedOptions.includes(field))
+        // we must use "[]" around the operator to use its value and not the 'operator' string
+        queryObject[field] = { [operator]: Number(value) };
+    });
+  }
 
   // we pass the queryObject as the find parameter
   // we remove the "await" keyword and pass it at the end of the result
