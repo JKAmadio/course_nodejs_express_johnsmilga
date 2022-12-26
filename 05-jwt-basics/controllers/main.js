@@ -29,29 +29,15 @@ const login = async (req, res) => {
 };
 
 const dashboard = async (req, res) => {
-  // we access the Autorization dictionary send on headers
-  const authHeader = req.headers.authorization;
+  // this function will only be launched if the authMiddleware reaches the "next" keyword
+  // check the './routes/main.js' file
+  const luckyNumber = Math.floor(Math.random() * 100);
 
-  // check if the authorization header exists and if it starts with Bearer
-  if (!authHeader || !authHeader.startsWith("Bearer"))
-    throw new CustomAPIError("No token provided", 401);
-
-  // only get the token (remove 'Bearer' part)
-  const token = authHeader.split(" ")[1];
-
-  try {
-    // after we confirm that an auth token is passed
-    // we MUST verify that it's real with jwt's method "verify"
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const luckyNumber = Math.floor(Math.random() * 100);
-
-    res.status(200).json({
-      msg: `Hello, ${decoded.username}`,
-      secret: `Here is your authorized data, your lucky number is: ${luckyNumber}`,
-    });
-  } catch (error) {
-    throw new CustomAPIError("Unauthorized token", 401);
-  }
+  res.status(200).json({
+    // in the authMiddleware we created a "user" property for req
+    msg: `Hello, ${req.user.username}`,
+    secret: `Here is your authorized data, your lucky number is: ${luckyNumber}`,
+  });
 };
 
 module.exports = {
