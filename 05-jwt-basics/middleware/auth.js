@@ -1,6 +1,6 @@
 // library that provides full support to web token
 const jwt = require("jsonwebtoken");
-const CustomAPIError = require("../errors/custom-error");
+const { UnauthenticatedError } = require("../errors");
 
 const authMiddleware = async (req, res, next) => {
   // we access the Autorization dictionary send on headers
@@ -8,7 +8,7 @@ const authMiddleware = async (req, res, next) => {
 
   // check if the authorization header exists and if it starts with Bearer
   if (!authHeader || !authHeader.startsWith("Bearer"))
-    throw new CustomAPIError("No token provided", 401);
+    throw new UnauthenticatedError("No token provided");
 
   // only get the token (remove 'Bearer' part)
   const token = authHeader.split(" ")[1];
@@ -18,7 +18,7 @@ const authMiddleware = async (req, res, next) => {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch (error) {
-    throw new CustomAPIError("Unauthorized token", 401);
+    throw new UnauthenticatedError("Unauthorized token");
   }
 };
 

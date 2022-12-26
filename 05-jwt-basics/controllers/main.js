@@ -1,11 +1,11 @@
 // library that provides full support to web token
 const jwt = require("jsonwebtoken");
-const CustomAPIError = require("../errors/custom-error");
+const { BadRequestError } = require("../errors");
 
 const login = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password)
-    throw new CustomAPIError("Please provide username and password", 400);
+    throw new BadRequestError("Please provide username and password");
 
   // random id created just because in this projet we are not using any database
   const id = Math.floor(Math.random() * 100000);
