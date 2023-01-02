@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -21,6 +22,18 @@ const UserSchema = new mongoose.Schema({
     require: [true, "Please provide password"],
     minlength: 6,
   },
+});
+
+// we set a Mongoose Middleware to execute functions before save on the database
+// we can access the model Document through the 'this' keyword
+UserSchema.pre("save", async function () {
+  // we call the 'genSalt' method to generate the hashing base
+  // the '10' is the default value, bigger the number, more secure it is, but more proccessing power required
+  const salt = await bcrypt.genSalt(10);
+
+  // we call the 'hash' method to execute the hashing to the password, using the salt as base
+  // we replace the password that is coming through the "create" method with the hashed one
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 module.exports = mongoose.model("User", UserSchema);
