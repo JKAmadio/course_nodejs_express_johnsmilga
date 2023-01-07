@@ -30,7 +30,17 @@ const login = async (req, res) => {
   res.status(StatusCodes.OK).json({ user: { name: user.name }, token });
 };
 
+const deleteAllUsers = async (req, res) => {
+  const users = await User.deleteMany();
+  if (users.ok !== 1)
+    throw new BadRequestError("Something went wrong, please try again");
+  return res
+    .status(200)
+    .json({ success: true, msg: `${users.deletedCount} users were deleted` });
+};
+
 module.exports = {
   register,
   login,
+  deleteAllUsers,
 };
