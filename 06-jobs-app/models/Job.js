@@ -24,7 +24,7 @@ const JobSchema = new mongoose.Schema(
       // creating a link between the User model and the Job model
       type: mongoose.Types.ObjectId,
       ref: "User",
-      require: [true, "Please provide User"],
+      required: [true, "Please provide User"],
     },
   },
   { timestamps: true }
