@@ -4,11 +4,11 @@ const { connectDb } = require('./db/connect');
 const { notFound } = require('./middleware/not-found');
 const app = express();
 
+const authRoute = require('./routes/auth');
+
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('oi');
-});
+app.use('/api/v1/auth', authRoute);
 
 app.use(notFound);
 
